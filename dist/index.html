@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#171917">
+  <meta name="description" content="Owl 是为创作者设计的 Windows 视频素材库。拖入视频，自动生成中文标签与摘要，让收藏的每一段灵感，随时被找到。">
+  <meta property="og:title" content="Owl — 让好素材，随时被找到。">
+  <meta property="og:description" content="收纳、理解、找回。一个安静好用的视频素材库。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://owl-video-library-wis.wis678.chatgpt.site">
+  <title>Owl — 让好素材，随时被找到。</title>
+  <link rel="icon" href="assets/owl.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="mosaic.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="arrow-up" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="search-icon" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z"/></symbol>
+    <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="win" viewBox="0 0 24 24"><path d="M3 4h8v8H3zm10 0h8v8h-8zM3 14h8v7H3zm10 0h8v7h-8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="grid-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="tag-icon" viewBox="0 0 24 24"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="7.5" cy="7.5" r="1"/></symbol>
+    <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7V5h6l2 3h10v12H3z"/></symbol>
+    <symbol id="spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+  </svg>
+
+  <header class="site-header container">
+    <a class="brand" href="#" aria-label="Owl 首页"><img src="assets/owl.svg" width="38" height="38" alt=""><span>Owl<span class="brand-period">.</span></span></a>
+    <nav class="desktop-nav" aria-label="主导航"><a href="#features">功能亮点</a><a href="#workflow">工作方式</a><a href="#faq">常见问题</a></nav>
+    <button class="header-cta" data-open="release">认识 Owl <svg><use href="#arrow-up"/></svg></button>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="mobile-nav" aria-label="展开导航"><span></span><span></span></button>
+  </header>
+  <nav id="mobile-nav" class="mobile-nav" hidden aria-label="手机导航"><a href="#features">功能亮点</a><a href="#workflow">工作方式</a><a href="#faq">常见问题</a><button data-open="release">认识 Owl ↗</button></nav>
+
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-kicker"><span class="status-dot"></span>灵感很多，找回它们可以很简单</div>
+      <h1 id="hero-title">让好素材，<br><span>随时被找到。</span><svg class="title-star" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 1v46M1 24h46M8 8l32 32M8 40 40 8"/></svg></h1>
+      <p class="hero-description">拖入视频，让 AI 整理画面与标签。<br>把翻找文件夹的时间，还给创作。</p>
+      <div class="hero-actions"><a class="button primary" href="#demo">体验 Owl 演示 <svg><use href="#arrow"/></svg></a><a class="button text-button" href="#workflow"><span class="play-circle"><svg><use href="#play"/></svg></span>看看它如何工作</a></div>
+      <p class="platform-note"><svg><use href="#win"/></svg>专为 Windows 设计 <span>·</span> 本地视频素材库</p>
+      <div class="hero-annotation" aria-hidden="true"><svg viewBox="0 0 84 56"><path d="M3 5c35-5 52 10 59 42m-13-8 14 10 7-15"/></svg><span>你的下一帧灵感，在这里。</span></div>
+    </section>
+
+    <section id="demo" class="demo-section container" aria-label="Owl 交互演示">
+      <div class="app-window">
+        <div class="window-titlebar"><div class="app-identity"><img src="assets/owl.svg" width="25" height="25" alt="Owl"><div class="app-tabs" role="tablist" aria-label="演示视图"><button id="video-tab" role="tab" aria-selected="true" aria-controls="video-panel" tabindex="0">视频</button><button id="tag-tab" role="tab" aria-selected="false" aria-controls="tag-panel" tabindex="-1">标签</button></div></div><label class="demo-search"><svg><use href="#search-icon"/></svg><input id="demo-search" type="search" placeholder="搜索视频、标签或画面描述" aria-label="搜索演示视频" autocomplete="off"><kbd>/</kbd></label><div class="window-controls" aria-hidden="true"><span>−</span><span>□</span><span>×</span></div></div>
+        <div class="app-body">
+          <div class="library-toolbar"><div class="filter-list" aria-label="素材分类"><button class="filter active" data-filter="all" aria-pressed="true">全部素材 <span>8</span></button><button class="filter" data-filter="自然风光" aria-pressed="false">自然风光</button><button class="filter" data-filter="城市建筑" aria-pressed="false">城市建筑</button><button class="filter" data-filter="旅途记录" aria-pressed="false">旅途记录</button></div><span class="demo-label"><span class="status-dot"></span>交互演示</span></div>
+          <div id="video-panel" role="tabpanel" aria-labelledby="video-tab"><div id="clip-grid" class="clip-grid"></div><div id="empty-state" class="empty-state" hidden><svg><use href="#search-icon"/></svg><h3>换个词，再找找</h3><p>试试“山川”“城市”或“海岸”。</p><button class="button secondary" id="reset-search">查看全部素材</button></div></div>
+          <div id="tag-panel" role="tabpanel" aria-labelledby="tag-tab" hidden><div class="tag-view-heading"><span>从一个标签，发现更多画面。</span><span>点击拼片查看相关素材 ↗</span></div><div id="demo-mosaic" class="demo-mosaic"></div></div>
+        </div>
+        <div class="window-status"><span><span class="status-dot"></span>灵感已就位</span><span id="result-count" role="status" aria-live="polite">8 段素材</span><span>原文件，仍在原来的地方 <svg><use href="#lock"/></svg></span></div>
+      </div>
+      <p class="demo-caption"><span>不是一张截图。试着搜索，或切换到「标签」。</span><span>画面与数据均为演示示例</span></p>
+    </section>
+
+    <div class="quiet-promise container"><span>为专注创作的人，留一处安静的素材空间。</span><div><span><svg><use href="#check"/></svg>保留原文件</span><span><svg><use href="#check"/></svg>中文标签与摘要</span><span><svg><use href="#check"/></svg>本地或云端模型</span></div></div>
+
+    <section id="features" class="features container section-space">
+      <div class="section-heading"><div><span class="eyebrow">A LITTLE ORDER. A LOT MORE IDEAS.</span><h2>少一点整理，<br>多一点创作。</h2></div><p>不必记住每一个文件名。<br>让画面自己介绍自己，让灵感再次相遇。</p></div>
+      <div class="feature-layout">
+        <article class="feature-card feature-ai"><div class="feature-topline"><span class="feature-number">01 / UNDERSTAND</span><svg><use href="#spark"/></svg></div><div class="ai-visual" aria-label="从视频画面生成中文标签的示意"><div class="ai-image"><img src="assets/clip-01.jpg" alt="山川风景演示素材" loading="lazy"><div class="scan-line"></div><span>正在读懂这一帧</span><i class="frame-corner c1"></i><i class="frame-corner c2"></i><i class="frame-corner c3"></i><i class="frame-corner c4"></i></div><div class="generated-tags"><span>自然风光</span><span>山川</span><span>远景</span><span>宁静</span><span class="generated-check"><svg><use href="#check"/></svg>AI 已打标</span></div></div><div class="feature-copy"><h3>画面里的细节，<br>变成找得回的线索。</h3><p>从视频画面生成中文标签与摘要。场景、动作、镜头与风格，成为下一次搜索的起点。</p></div></article>
+        <div class="feature-stack"><article class="feature-card feature-capture"><div class="feature-topline"><span class="feature-number">02 / COLLECT</span><svg><use href="#folder"/></svg></div><div class="capture-visual" aria-hidden="true"><div class="floating-file"><svg><use href="#play"/></svg><span>灵感片段.mov</span></div><div class="capture-route"></div><div class="drop-box"><div class="box-lid"></div><img src="assets/owl.svg" width="34" height="34" alt=""></div><div class="capture-shortcut"><kbd>Shift</kbd><span>拖一下，就收好了</span></div><svg class="capture-cursor" viewBox="0 0 32 32"><path d="m5 3 5 24 5-8 9 2z"/></svg></div><div class="feature-copy"><h3>灵感路过，顺手收下。</h3><p>按住 Shift 拖动视频，唤出悬浮收纳盒。<br>松手投递，继续手头的创作。</p></div></article><article class="feature-card feature-local"><div class="feature-topline"><span class="feature-number">03 / KEEP IT YOURS</span><svg><use href="#lock"/></svg></div><div class="local-copy"><h3>素材在本地，<br>选择权也在你。</h3><p>原视频留在原位置，本地索引轻装管理。<br>选择本地模型，下载完成后即可离线打标；<br>也可连接你熟悉的云端视觉模型。</p></div><div class="local-bottom"><span><i></i>LOCAL FIRST</span><svg><use href="#arrow-up"/></svg></div></article></div>
+      </div>
+    </section>
+
+    <section id="workflow" class="workflow section-space"><div class="container"><div class="section-heading"><div><span class="eyebrow">FROM SAVED TO FOUND.</span><h2>从收下，到用上。<br><span class="muted-heading">只需要三步。</span></h2></div><a class="inline-link" href="#demo">在演示里试试看 <svg><use href="#arrow"/></svg></a></div><div class="steps"><article><span class="step-number">01<span>—</span></span><h3>把视频拖进来</h3><p>拖入主窗口，或用 Shift 唤出收纳盒。<br>MP4、MOV、MKV 等常见格式都能收。</p><div class="step-footer"><svg><use href="#folder"/></svg><span>留下原文件，建立新秩序</span></div></article><article><span class="step-number">02<span>—</span></span><h3>让 AI 看懂画面</h3><p>自动生成封面；配置视觉模型后，<br>生成中文标签与摘要。整理在后台继续。</p><div class="step-footer"><svg><use href="#spark"/></svg><span>云端 API / 本地开源模型</span></div></article><article><span class="step-number">03<span>↗</span></span><h3>在需要时，再次遇见</h3><p>搜索关键词，或沿着标签浏览。<br>悬停看预览，按下空格，回到那一刻。</p><div class="step-footer"><svg><use href="#search-icon"/></svg><span>从“存在哪”到“就在这”</span></div></article></div></div></section>
+
+    <section id="faq" class="faq container section-space"><div class="faq-intro"><span class="eyebrow">GOOD TO KNOW.</span><h2>也许你还想知道。</h2><p>关于 Owl 的几个小问题。</p><a class="inline-link" href="https://wj.qq.com/s2/28637962/iecz/" target="_blank" rel="noopener noreferrer">告诉我们你的想法 <svg><use href="#arrow-up"/></svg></a></div><div class="faq-list"><details open><summary>Owl 会复制或移动我的原视频吗？<span></span></summary><p>不会。Owl 记录视频的原路径，在本地保存封面、标签和摘要，原视频仍留在原来的位置。移动文件后，可以在属性栏重新关联。</p></details><details><summary>我的视频会被上传吗？<span></span></summary><p>使用本地模型时，请求只发送到本机的 Ollama。使用云端模型时，所选服务会收到文件名和最多六张抽取的画面，不会上传完整视频。具体数据处理方式取决于你的模型服务。</p></details><details><summary>需要什么 AI 模型？可以离线使用吗？<span></span></summary><p>Owl 支持云端视觉模型 API、自定义兼容服务，以及本地 Qwen 视觉模型。下载并启用本地模型后，可以离线打标。本地模型的速度取决于电脑配置；云端 API 的费用由所选服务决定。</p></details><details><summary>支持哪些系统和视频格式？<span></span></summary><p>当前面向 Windows x64，支持 MP4、MOV、M4V、AVI、MKV 和 WebM。部分编码的预览能力取决于系统环境，也可以双击视频，使用系统默认播放器打开。</p></details><details><summary>现在可以下载 Owl 吗？<span></span></summary><p>当前产品版本为 v0.3.1，官网公开下载尚未开放。你可以先体验本页的素材库演示，了解搜索、标签浏览和素材详情的使用方式。</p></details></div></section>
+
+    <section class="closing container"><div class="closing-owl"><img src="assets/owl.svg" width="64" height="64" alt="Owl"></div><span class="eyebrow">MAKE ROOM FOR YOUR NEXT IDEA.</span><h2>让收藏的每一帧，<br>都有再次出场的机会。</h2><a class="button primary" href="#demo">遇见你的素材库 <svg><use href="#arrow"/></svg></a><p>Owl for Windows <span>·</span> 给灵感一个安静的家</p><span class="closing-watermark" aria-hidden="true">Owl.</span></section>
+  </main>
+
+  <footer class="site-footer container"><a class="brand" href="#"><img src="assets/owl.svg" width="30" height="30" alt=""><span>Owl<span class="brand-period">.</span></span></a><span>收下灵感，留给下一次创作。</span><div><a href="#faq">常见问题</a><button data-open="credits">影像鸣谢</button><span>© <span id="year">2026</span> Owl</span></div></footer>
+
+  <dialog id="clip-dialog" class="clip-dialog" aria-labelledby="clip-title"><button class="dialog-close" aria-label="关闭素材详情"><svg><use href="#close"/></svg></button><div class="detail-image"><img id="detail-image" src="assets/clip-01.jpg" alt=""><span class="detail-label">示例素材 · 静态画面预览</span></div><div class="detail-copy"><span class="eyebrow">A CLOSER LOOK</span><h2 id="clip-title"></h2><div id="detail-meta" class="detail-meta"></div><p class="detail-section-title">AI 内容摘要 <svg><use href="#spark"/></svg></p><p id="detail-summary"></p><p class="detail-section-title">画面标签</p><div id="detail-tags" class="detail-tags"></div><p class="detail-note">这是官网交互演示。桌面版支持视频悬停预览与空格播放。</p></div></dialog>
+  <dialog id="release-dialog" class="info-dialog" aria-labelledby="release-title"><button class="dialog-close" aria-label="关闭版本信息"><svg><use href="#close"/></svg></button><img class="release-icon" src="assets/owl.svg" width="72" height="72" alt="Owl"><span class="eyebrow">YOUR NEXT CREATIVE COMPANION.</span><h2 id="release-title">你好，我们是 Owl。</h2><p>一个安静好用的 Windows 视频素材库。<br>帮你收下灵感，也帮你重新找到它。</p><div class="release-version"><span><svg><use href="#win"/></svg>Windows x64</span><span>v0.3.1</span></div><p class="release-note">官网公开下载尚未开放，先来体验素材库演示。</p><button class="button primary" id="start-demo">体验交互演示 <svg><use href="#arrow"/></svg></button></dialog>
+  <dialog id="credits-dialog" class="info-dialog" aria-labelledby="credits-title"><button class="dialog-close" aria-label="关闭影像鸣谢"><svg><use href="#close"/></svg></button><span class="eyebrow">THROUGH THEIR LENS.</span><h2 id="credits-title">谢谢这些好画面。</h2><p>官网演示中的摄影作品来自 Unsplash。<br>图片用于展示素材管理效果，示例标签与摘要为演示内容。</p><div id="photo-credits" class="photo-credits"></div></dialog>
+</body>
+</html>
