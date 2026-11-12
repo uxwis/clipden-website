@@ -295,8 +295,12 @@ function setupPageMotion() {
     if(index>0)element.style.setProperty("--reveal-delay",`${Math.min(index*55,220)}ms`);
   });
   const reveal="IntersectionObserver" in window?new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");reveal.unobserve(entry.target);}});
+    entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add("is-visible");});
   },{threshold:.08,rootMargin:"0px 0px -28px 0px"}):null;
+  // Reset only after the element leaves the viewport, leaving room for its 24px motion.
+  const resetReveal=reveal?new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{if(!entry.isIntersecting)entry.target.classList.remove("is-visible");});
+  },{rootMargin:"48px 0px",threshold:0}):null;
   document.addEventListener("focusin",event=>event.target.closest("[data-reveal]")?.classList.add("is-visible"));
   const scenes=[...document.querySelectorAll(".hero-art,.feature-board")];
   const animatedScenes=[...document.querySelectorAll(".hero-art,.feature-board,.app-window")];
@@ -318,7 +322,7 @@ function setupPageMotion() {
   document.documentElement.classList.add("motion-allowed");
   document.documentElement.classList.toggle("motion-ready",!!reveal);
   targets.forEach(element=>{
-    if(reveal)reveal.observe(element);
+    if(reveal){reveal.observe(element);resetReveal.observe(element);}
     else element.classList.add("is-visible");
   });
   const stopInvitation=()=>$(".app-window").classList.add("demo-used");
