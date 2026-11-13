@@ -109,6 +109,7 @@ function mosaicTile(polygon, index) {
   label.nameSize = Math.round(Math.max(13, Math.min(18, typeLimit, 13 + (room - 92) * .035)));
   label.countSize = label.nameSize >= 16 ? 12 : 11;
   label.lines = Math.max(1, Math.min(4, Math.floor((2 * band - label.countSize * 1.2 - 4) / (label.nameSize * 1.2))));
+  label.band = band;
   return { left, top, width, height, label, path: mosaicPath(polygon, radius, left, top) };
 }
 

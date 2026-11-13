@@ -21,6 +21,13 @@ let lastDialogTrigger;
 const dialogFocusTargets=new WeakMap();
 const icon = name => `<svg aria-hidden="true"><use href="#${name}"/></svg>`;
 const scrollToDemo = () => $("#demo").scrollIntoView({behavior:"smooth"});
+const tagVisuals = {
+  自然风光:{image:1}, 城市建筑:{image:4}, 旅途记录:{image:5}, 海岸:{image:6}, 建筑:{image:4}, 日出:{image:8},
+  山川:{tone:"ice",symbol:"mountain"}, 光影:{tone:"cyan",symbol:"spark"}, 旅行:{tone:"ink",symbol:"arrow-up"},
+  宁静:{tone:"ink",symbol:"moon"}, 远景:{image:3}, 森林:{tone:"cyan",symbol:"leaf"},
+  夜景:{tone:"ice",symbol:"moon"}, 日常:{tone:"ink",symbol:"play"}, 沙丘:{tone:"ice",symbol:"mountain"},
+  线条:{tone:"ink",symbol:"tag-icon"}, 绿色:{tone:"cyan",symbol:"leaf"}
+};
 
 function filteredClips() {
   const query = searchInput.value.trim().toLocaleLowerCase();
@@ -78,12 +85,63 @@ function renderMosaic() {
   if(!entries.length){mosaic.style.height="320px";const message=document.createElement("p");message.className="empty-state";message.textContent="还没有匹配的标签，试试“山川”或“旅行”。";mosaic.append(message);$("#result-count").textContent="0 个匹配标签";return;}
   const width=mosaic.clientWidth;
   if(!width)return;
-  const layout=layoutTagMosaic(width,entries);
+  const layout=layoutShowcaseTags(width,entries);
   mosaic.style.height=`${layout.height}px`;
-  if(layout.wide){const stats=document.createElement("div");stats.className="mosaic-stats";stats.innerHTML=`<span>画面里的线索</span><strong>${entries.length}</strong><span>点击标签，再次遇见素材</span>`;mosaic.append(stats);const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.classList.add("mosaic-contours");svg.setAttribute("viewBox",`0 0 ${width} ${layout.height}`);const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",layout.contours);svg.append(path);mosaic.append(svg);}
-  const colors=["#4d626d","#52636c","#65808c","#46565f","#607781","#788b94","#4d6878","#5c7481","#435963","#79919b","#526c78","#6a818a"];
-  layout.tiles.forEach((tile,index)=>{const entry=entries[index];if(!entry)return;const button=document.createElement("button");button.type="button";button.className="mosaic-tile";button.style.cssText=`left:${tile.left}px;top:${tile.top}px;width:${tile.width}px;height:${tile.height}px;clip-path:path('${tile.path}');`;button.setAttribute("aria-label",`查看标签 ${entry.tag}，${entry.n} 段素材`);button.innerHTML=`<svg viewBox="0 0 ${tile.width} ${tile.height}" aria-hidden="true"><path d="${tile.path}" fill="${colors[index%colors.length]}"/></svg><span style="left:${tile.label.x}px;top:${tile.label.y}px;width:${tile.label.width}px;font-size:${Math.min(18,tile.label.nameSize)}px">${entry.tag}<small>${entry.n} 段素材</small></span>`;button.addEventListener("click",()=>{searchInput.value="";setFilter(entry.tag);switchView("video");searchInput.focus({preventScroll:true});});mosaic.append(button);});
+  layout.tiles.forEach((tile,index)=>{
+    const entry=entries[index],visual=tagVisuals[entry.tag]||{tone:"ink",symbol:"tag-icon"};
+    const button=document.createElement("button");
+    button.type="button";button.className=`mosaic-tile tag-piece ${visual.image?"has-photo":`tile-${visual.tone}`}`;
+    button.style.cssText=`left:${tile.left}px;top:${tile.top}px;width:${tile.width}px;height:${tile.height}px;clip-path:path('${tile.path}');`;
+    button.setAttribute("aria-label",`查看标签 ${entry.tag}，${entry.n} 段素材`);
+    if(visual.image){
+      const img=document.createElement("img");
+      img.src=`assets/clip-${String(visual.image).padStart(2,"0")}.jpg`;img.alt="";
+      img.width=600;img.height=400;img.decoding="async";if(index>7)img.loading="lazy";
+      button.append(img);
+    }
+    const label=document.createElement("span");label.className="mosaic-label";
+    const showSymbol=visual.symbol&&tile.label.band>=36;
+    const nameSize=Math.max(13,Math.min(24,Math.floor(tile.label.width/Array.from(entry.tag).length),Math.floor((tile.label.band*2-(showSymbol?53:26))/1.35)));
+    label.style.cssText=`left:${tile.label.x}px;top:${tile.label.y}px;width:${tile.label.width}px;font-size:${nameSize}px;`;
+    if(showSymbol)label.innerHTML=`<span class="tile-symbol">${icon(visual.symbol)}</span>`;
+    const name=document.createElement("strong");name.textContent=entry.tag;
+    const count=document.createElement("small");count.textContent=`${entry.n} 段素材`;
+    label.append(name,count);button.append(label);
+    button.addEventListener("click",()=>{searchInput.value="";setFilter(entry.tag);switchView("video");searchInput.focus({preventScroll:true});});
+    mosaic.append(button);
+  });
   $("#result-count").textContent=`${entries.length} 个标签 · 示例素材库`;
+}
+
+function layoutShowcaseTags(width,entries) {
+  const small=window.matchMedia("(max-width:600px)").matches;
+  const heroSites=small
+    ? [[.22,.08],[.73,.12],[.25,.34],[.83,.35],[.13,.61],[.62,.58],[.30,.87],[.85,.85]]
+    : [[.12,.15],[.40,.16],[.68,.11],[.90,.27],[.09,.72],[.35,.73],[.61,.65],[.88,.83]];
+  const patterns={
+    1:[[.5,.5]],
+    2:small?[[.5,.24],[.5,.76]]:[[.25,.5],[.75,.5]],
+    3:[[.2,.24],[.77,.24],[.5,.78]],
+    4:[[.18,.2],[.74,.25],[.23,.75],[.81,.75]],
+    5:small?[[.25,.12],[.81,.18],[.18,.56],[.65,.48],[.62,.86]]:[[.13,.25],[.50,.16],[.86,.30],[.28,.77],[.73,.78]],
+    6:small?[[.22,.10],[.77,.15],[.30,.44],[.82,.51],[.19,.83],[.74,.86]]:[[.12,.15],[.43,.20],[.83,.16],[.09,.72],[.39,.73],[.77,.72]]
+  };
+  const tiles=[];let start=0,offset=0;
+  while(start<entries.length){
+    const remaining=entries.length-start;
+    const count=remaining>8&&remaining<12?Math.ceil(remaining/2):Math.min(8,remaining);
+    const height=small?(count===1?220:count===2?360:count===3?440:count===4?500:590):(count===1?250:count===2?300:count===3?340:count===4?380:420);
+    const positions=patterns[count]||heroSites.slice(0,count);
+    const sites=positions.map(([x,y],index)=>({x:x*width,y:y*height,weight:index===0?width*height*.009:0}));
+    const frame=[{x:0,y:0},{x:width,y:0},{x:width,y:height},{x:0,y:height}];
+    sites.forEach((site,index)=>{
+      let polygon=frame;
+      for(const neighbor of sites)if(neighbor!==site)polygon=clipMosaicCell(polygon,site,neighbor);
+      const tile=mosaicTile(polygon,index);tile.top+=offset;tiles.push(tile);
+    });
+    start+=count;offset+=height+(start<entries.length?14:0);
+  }
+  return {height:offset,tiles};
 }
 
 function showDialog(dialog,trigger) {
@@ -117,61 +175,6 @@ $("#year").textContent=new Date().getFullYear();
 let resizeTimer;
 window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{updateSearchPlaceholder();if(currentView==="tag")renderMosaic();else if((window.matchMedia("(max-width:600px)").matches?2:4)!==columnCount)renderClips();},100);});
 renderClips();
-
-// The same rounded polygon vocabulary as ClipDen's tag map, now used in the page itself.
-const heroPieces = [
-  {title:"让收藏，\n重新发生。", subtitle:"YOUR NEXT FRAME", tone:"ink", filter:"all", icon:"spark"},
-  {title:"城市建筑", subtitle:"AFTER HOURS", image:2, filter:"城市建筑"},
-  {title:"山川", subtitle:"A LITTLE FURTHER", tone:"lilac", filter:"山川", icon:"arrow-up"},
-  {title:"旅途记录", subtitle:"ON THE ROAD", image:8, filter:"旅途记录"},
-  {title:"建筑", subtitle:"LINES & SHAPES", image:4, filter:"建筑"},
-  {title:"光影", subtitle:"FOLLOW THE LIGHT", tone:"peach", filter:"光影", icon:"spark"},
-  {title:"自然风光", subtitle:"ROOM TO BREATHE", image:3, filter:"自然风光"},
-  {title:"海岸", subtitle:"A QUIETER MOMENT", image:6, filter:"海岸"}
-];
-
-function renderHeroMosaic() {
-  const board=$("#hero-mosaic");
-  const width=board.clientWidth;
-  const height=board.clientHeight;
-  if(!width||!height)return;
-  const small=window.matchMedia("(max-width:600px)").matches;
-  const positions=small
-    ? [[.22,.08],[.73,.12],[.25,.34],[.83,.35],[.13,.61],[.62,.58],[.30,.87],[.85,.85]]
-    : [[.12,.15],[.40,.16],[.68,.11],[.90,.27],[.09,.72],[.35,.73],[.61,.65],[.88,.83]];
-  const sites=positions.map(([x,y],index)=>({x:x*width,y:y*height,weight:index===0?width*height*.009:0}));
-  const frame=[{x:0,y:0},{x:width,y:0},{x:width,y:height},{x:0,y:height}];
-  board.replaceChildren();
-  sites.forEach((site,index)=>{
-    let polygon=frame;
-    for(const neighbor of sites)if(neighbor!==site)polygon=clipMosaicCell(polygon,site,neighbor);
-    const tile=mosaicTile(polygon,index);
-    const piece=heroPieces[index];
-    const button=document.createElement("button");
-    button.type="button";
-    button.className=`hero-piece ${piece.image?"has-photo":`tile-${piece.tone}`}`;
-    button.style.cssText=`left:${tile.left}px;top:${tile.top}px;width:${tile.width}px;height:${tile.height}px;clip-path:path('${tile.path}');`;
-    button.setAttribute("aria-label",`探索${piece.filter==="all"?"全部":piece.filter}素材演示`);
-    if(piece.image){
-      const img=document.createElement("img");
-      img.src=`assets/clip-${String(piece.image).padStart(2,"0")}.jpg`;
-      img.alt="";
-      img.width=600;img.height=400;
-      img.decoding="async";
-      button.append(img);
-    }
-    const label=document.createElement("span");
-    label.className="hero-piece-label";
-    label.style.cssText=`left:${tile.label.x}px;top:${tile.label.y}px;width:${Math.max(tile.label.width,90)}px;`;
-    if(piece.icon)label.innerHTML=icon(piece.icon);
-    const title=document.createElement("strong");title.textContent=piece.title;
-    const subtitle=document.createElement("small");subtitle.textContent=piece.subtitle;
-    label.append(title,subtitle);
-    button.append(label);
-    button.addEventListener("click",()=>{searchInput.value="";setFilter(piece.filter);switchView("video");scrollToDemo();searchInput.focus({preventScroll:true});});
-    board.append(button);
-  });
-}
 
 function clipPanel(selector,points,radius=28) {
   const element=$(selector);
@@ -260,11 +263,9 @@ function renderLocalConnection() {
 }
 
 let shapeFrame;
-const shapeObserver=new ResizeObserver(()=>{cancelAnimationFrame(shapeFrame);shapeFrame=requestAnimationFrame(()=>{renderHeroMosaic();renderPageShapes();});});
-shapeObserver.observe($("#hero-mosaic"));
+const shapeObserver=new ResizeObserver(()=>{cancelAnimationFrame(shapeFrame);shapeFrame=requestAnimationFrame(()=>{renderPageShapes();});});
 shapeObserver.observe($(".feature-board"));
 document.querySelectorAll(".closing-tile").forEach(element=>shapeObserver.observe(element));
-renderHeroMosaic();
 renderPageShapes();
 
 function updateSearchPlaceholder() {
@@ -334,3 +335,20 @@ function setupPageMotion() {
   update();
 }
 setupPageMotion();
+
+function setupHeroVideo() {
+  const video=$("#hero-video");
+  video.muted=true;
+  let visible=false,pausedByUser=false;
+  video.addEventListener("pause",()=>{if(visible)pausedByUser=true;});
+  video.addEventListener("play",()=>{pausedByUser=false;});
+  if("IntersectionObserver" in window){
+    const observer=new IntersectionObserver(entries=>{
+      visible=entries[0].isIntersecting&&entries[0].intersectionRatio>=.12;
+      if(visible){if(!pausedByUser)video.play().catch(()=>{});}
+      else video.pause();
+    },{threshold:[0,.12]});
+    observer.observe(video);
+  }else video.play().catch(()=>{});
+}
+setupHeroVideo();
