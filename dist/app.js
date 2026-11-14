@@ -171,6 +171,77 @@ const menuButton=$(".menu-toggle");
 menuButton.addEventListener("click",()=>{const expanded=menuButton.getAttribute("aria-expanded")!=="true";menuButton.setAttribute("aria-expanded",String(expanded));menuButton.setAttribute("aria-label",expanded?"收起导航":"展开导航");$("#mobile-nav").hidden=!expanded;});
 $("#mobile-nav").addEventListener("click",event=>{if(event.target.closest("a,button")){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;}});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&menuButton.getAttribute("aria-expanded")==="true"){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;menuButton.focus();}});
+// Native popovers escape the clipped closing tiles without moving the page layout.
+function setupDownloadMenus() {
+  const closeMenus=[];
+  document.querySelectorAll(".download-choice").forEach(group=>{
+    const trigger=group.querySelector(".download-button");
+    const menu=group.querySelector(".download-menu");
+    const links=[...menu.querySelectorAll("a")];
+    let closeTimer,pinned=false;
+    const isOpen=()=>menu.matches(":popover-open");
+    const cancelClose=()=>clearTimeout(closeTimer);
+    const close=()=>{cancelClose();if(isOpen())menu.hidePopover();};
+    closeMenus.push(close);
+    const position=()=>{
+      const rect=trigger.getBoundingClientRect();
+      const width=menu.offsetWidth,height=menu.offsetHeight,gap=10,gutter=12;
+      const preferredLeft=group.classList.contains("header-downloads")?rect.right-width:rect.left+(rect.width-width)/2;
+      const left=Math.max(gutter,Math.min(preferredLeft,document.documentElement.clientWidth-width-gutter));
+      const below=rect.bottom+gap;
+      const top=below+height>window.innerHeight-gutter&&rect.top>height+gap+gutter?rect.top-height-gap:below;
+      menu.style.left=`${left}px`;
+      menu.style.top=`${Math.max(gutter,Math.min(top,window.innerHeight-height-gutter))}px`;
+    };
+    const open=()=>{
+      cancelClose();
+      if(!isOpen())menu.showPopover({source:trigger});
+      position();
+    };
+    const scheduleClose=event=>{
+      if(event.pointerType!=="mouse")return;
+      cancelClose();
+      closeTimer=setTimeout(()=>{if(!menu.contains(document.activeElement))close();},180);
+    };
+    trigger.addEventListener("pointerenter",event=>{
+      if(event.pointerType==="mouse"&&window.matchMedia("(hover:hover)").matches)open();
+    });
+    group.addEventListener("pointerleave",scheduleClose);
+    menu.addEventListener("pointerenter",cancelClose);
+    menu.addEventListener("pointerleave",scheduleClose);
+    trigger.addEventListener("click",event=>{
+      event.preventDefault();
+      if(isOpen()&&pinned){close();return;}
+      open();pinned=true;
+      if(event.detail===0)links[0].focus();
+    });
+    trigger.addEventListener("keydown",event=>{
+      if(!["ArrowDown","ArrowUp"].includes(event.key))return;
+      event.preventDefault();open();pinned=true;
+      links[event.key==="ArrowDown"?0:links.length-1].focus();
+    });
+    group.addEventListener("keydown",event=>{
+      if(event.key==="Escape"&&isOpen()){
+        event.preventDefault();close();trigger.focus({preventScroll:true});
+      }else if(menu.contains(event.target)&&["ArrowDown","ArrowUp","Home","End"].includes(event.key)){
+        event.preventDefault();
+        const index=links.indexOf(document.activeElement);
+        const next=event.key==="Home"?0:event.key==="End"?links.length-1:(index+(event.key==="ArrowDown"?1:-1)+links.length)%links.length;
+        links[next].focus();
+      }
+    });
+    group.addEventListener("focusout",()=>queueMicrotask(()=>{if(!group.contains(document.activeElement))close();}));
+    menu.addEventListener("click",event=>{if(event.target.closest("a"))close();});
+    menu.addEventListener("beforetoggle",event=>{
+      trigger.setAttribute("aria-expanded",String(event.newState==="open"));
+      if(event.newState==="closed"){pinned=false;cancelClose();}
+    });
+  });
+  const closeAll=()=>closeMenus.forEach(close=>close());
+  window.addEventListener("resize",closeAll);
+  window.addEventListener("scroll",closeAll,{capture:true,passive:true});
+}
+setupDownloadMenus();
 $("#year").textContent=new Date().getFullYear();
 let resizeTimer;
 window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{updateSearchPlaceholder();if(currentView==="tag")renderMosaic();else if((window.matchMedia("(max-width:600px)").matches?2:4)!==columnCount)renderClips();},100);});

@@ -26,7 +26,7 @@
 - 中文最小字号为 12px，英文最小字号为 10px；SVG 配图中的文字会按实际显示比例调整。桌面与手机的两种演示视图保持相同标题行、内容起点及窗口尺寸。
 - 各模块离开视口后重置，再次进入时重新播放进场动效；工作流和问答轻微错开，主视觉与功能配图随滚动产生小幅位移。01 包含轻微扫描及标签生成动效。演示标签页无外框，在进入视口后显示指针和点击光晕，用户点击或键盘操作后停止；切换视图有轻微过渡，不会自动改变选中标签。
 - 按用户要求，页面始终开启动效，不再读取旧动效设置，也不保留开关入口。使用原生 IntersectionObserver 和 requestAnimationFrame，不依赖动画库。
-- 当前下载版本为 v0.3.2。页头、首屏和页尾的下载入口均连接到用户提供的 Windows 安装包地址 `https://clipden-download.wis-mailto.workers.dev/download/win`，使用可键盘操作的原生链接。
+- 当前下载版本为 v0.3.2。页头、首屏和页尾共用下载菜单，鼠标移入或点击按钮展开“直接下载 / 国内备用下载”；手机端点击展开。直接下载地址为 `https://clipden-download.wis-mailto.workers.dev/download/win`，国内备用地址为 `https://my.feishu.cn/wiki/AYpgwC54Ti6XNgkAVzycDnpbn7f?from=from_copylink`，页面只显示下载方式，不显示服务商名称。支持键盘选择、Esc、移出和点击空白收起；浮层避开屏幕边缘，不占用页面排版空间。
 - 图片鸣谢记录在 `dist/assets/credits.json`。
 
 本目录独立于桌面程序，未改动桌面程序的业务代码。
