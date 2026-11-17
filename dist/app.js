@@ -171,6 +171,23 @@ const menuButton=$(".menu-toggle");
 menuButton.addEventListener("click",()=>{const expanded=menuButton.getAttribute("aria-expanded")!=="true";menuButton.setAttribute("aria-expanded",String(expanded));menuButton.setAttribute("aria-label",expanded?"收起导航":"展开导航");$("#mobile-nav").hidden=!expanded;});
 $("#mobile-nav").addEventListener("click",event=>{if(event.target.closest("a,button")){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;}});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&menuButton.getAttribute("aria-expanded")==="true"){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;menuButton.focus();}});
+function setupStickyHeader() {
+  const shell=$(".header-shell");
+  let frame;
+  const update=()=>{frame=undefined;shell.classList.toggle("is-scrolled",window.scrollY>24);};
+  window.addEventListener("scroll",()=>{if(!frame)frame=requestAnimationFrame(update);},{passive:true});
+  window.addEventListener("pageshow",update);
+  document.addEventListener("pointerdown",event=>{
+    if(menuButton.getAttribute("aria-expanded")==="true"&&!shell.contains(event.target)){
+      menuButton.setAttribute("aria-expanded","false");
+      menuButton.setAttribute("aria-label","展开导航");
+      $("#mobile-nav").hidden=true;
+    }
+  });
+  update();
+}
+setupStickyHeader();
+
 // Native popovers escape the clipped closing tiles without moving the page layout.
 function setupDownloadMenus() {
   const closeMenus=[];
@@ -375,7 +392,7 @@ function setupPageMotion() {
   },{rootMargin:"48px 0px",threshold:0}):null;
   document.addEventListener("focusin",event=>event.target.closest("[data-reveal]")?.classList.add("is-visible"));
   const scenes=[...document.querySelectorAll(".hero-art,.feature-board")];
-  const animatedScenes=[...document.querySelectorAll(".hero-art,.feature-board,.app-window")];
+  const animatedScenes=[...document.querySelectorAll(".hero-backdrop,.hero-art,.feature-board,.app-window")];
   if("IntersectionObserver" in window){
     const sceneObserver=new IntersectionObserver(entries=>entries.forEach(entry=>entry.target.classList.toggle("scene-active",entry.isIntersecting)),{rootMargin:"40px"});
     animatedScenes.forEach(element=>sceneObserver.observe(element));
