@@ -12,6 +12,16 @@
 
 部署通过 GitHub 仓库进行；日常修改更新网站源文件，不默认生成静态部署包。
 
+## 搜索收录
+
+正式首页为 [https://wiws.me/](https://wiws.me/)。首页的规范链接、分享信息及站点地图统一使用这个地址。随现有流程发布 `dist/` 后，确认首页、`/sitemap.xml` 和 `/robots.txt` 均返回 HTTP 200，后两项分别返回 XML 和纯文本。使用 Cloudflare 托管 robots.txt 时，确认最终响应仍含 `Sitemap: https://wiws.me/sitemap.xml`。
+
+1. **Google**：在 [Search Console](https://search.google.com/search-console) 添加站点并验证权属。提交 `sitemap.xml`，再对首页运行“URL 检查 → 测试实际网址 → 请求编入索引”。
+2. **百度**：在 [百度搜索资源平台](https://ziyuan.baidu.com/site/index) 添加并验证站点，通过[普通收录](https://ziyuan.baidu.com/linksubmit/index)提交首页。有 Sitemap 提交入口时也可提交站点地图。
+3. **Bing**：在 [Bing Webmaster Tools](https://www.bing.com/webmasters/) 验证站点并提交站点地图，通过 [URL Inspection](https://www.bing.com/webmasters/help/url-inspection-55a30305) 检查首页的抓取与索引状态。
+
+建议通过托管平台将 HTTP 和 `www` 访问永久跳转到 HTTPS 裸域，后续在 GitHub 产品仓库和发布说明中也使用同一首页地址。首页的 `#demo` 等段落锚点属于同一页面，站点地图只列首页。提交后在站长后台查看收录状态和具体原因，搜索结果出现的时间取决于各平台。
+
 ## 内容与交互
 
 - Hero 使用缓慢流动的蓝青光影。视频上下沿的细微受光与紧贴底边、向外扩散的蓝青光晕，共享主背景的 32 秒明暗变化节奏及启停状态；次级背景为 38 秒流动。取消厚底座、接触暗部与卡片投影，用连续光场连接视频和背景；光晕从底边开始扩散，没有间隔或矩形边界。背景向下一屏延伸桌面 600px、手机 420px，并逐渐淡出为原页面底色。文案、内容版式、导航和填充式下载按钮保持原样。
