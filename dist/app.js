@@ -12,6 +12,30 @@ const clips = [
 ];
 
 const $ = selector => document.querySelector(selector);
+const english = document.documentElement.lang === "en";
+const localize = (chinese, translated) => english ? translated : chinese;
+const englishTags = {
+  自然风光: "Nature", 城市建筑: "City", 旅途记录: "Travel log",
+  山川: "Mountains", 森林: "Forest", 宁静: "Calm", 夜景: "Night",
+  光影: "Light", 日常: "Daily life", 沙丘: "Dunes", 远景: "Wide shot",
+  建筑: "Architecture", 线条: "Lines", 海岸: "Coast", 旅行: "Travel",
+  绿色: "Green", 日出: "Sunrise"
+};
+const englishClipCopy = [
+  ["Stillness in the Mountains.mp4", "Mist drifts over forested slopes, softening the greens into layers. A quiet landscape for nature stories, transitions, and mood references."],
+  ["Tokyo After the Rain.mov", "Neon signs reflect off rain-soaked Tokyo streets. Use the clip for city stories, night scenes, or color references."],
+  ["Wind Across the Dunes.mp4", "Dark dunes roll under a hazy sky. Gentle slopes and shifting shadows create a minimal landscape."],
+  ["Light on Concrete.mp4", "Light and water highlight the geometry of a concrete building and its ramp. Useful for architecture and composition references."],
+  ["Along the Coast.mov", "A road winds along green coastal cliffs. The open sea makes it a natural fit for road-trip stories and travel transitions."],
+  ["Rhythm of the Waves.mp4", "White foam curls through turquoise waves, creating a textured surface for ocean stories and natural transitions."],
+  ["Wide Open Country.mp4", "Open terrain stretches towards the sky. Use this wide shot for outdoor stories, travel openings, or establishing a sense of scale."],
+  ["Pause at Sunrise.mov", "Sunrise lights a ridge as a lone hiker crosses it, giving scale to the landscape. Useful for outdoor travel and exploration stories."]
+];
+const tagLabel = tag => english ? englishTags[tag] : tag;
+const clipName = clip => english ? englishClipCopy[clip.id - 1][0] : clip.name;
+const clipSummary = clip => english ? englishClipCopy[clip.id - 1][1] : clip.summary;
+const clipCount = count => english ? `${count} ${count === 1 ? "clip" : "clips"}` : `${count} 段素材`;
+const thumbnail = id => `${english ? "../" : ""}assets/clip-${String(id).padStart(2, "0")}.jpg`;
 const grid = $("#clip-grid");
 const searchInput = $("#demo-search");
 let activeFilter = "all";
@@ -32,7 +56,7 @@ const tagVisuals = {
 function filteredClips() {
   const query = searchInput.value.trim().toLocaleLowerCase();
   return clips.filter(clip => (activeFilter === "all" || clip.tags.includes(activeFilter)) &&
-    (!query || [clip.name,clip.summary,...clip.tags].join(" ").toLocaleLowerCase().includes(query)));
+    (!query || [clipName(clip), clipSummary(clip), ...clip.tags.map(tagLabel)].join(" ").toLocaleLowerCase().includes(query)));
 }
 
 function renderClips() {
@@ -43,13 +67,17 @@ function renderClips() {
   const buckets = Array.from({length:columns},()=>{const column=document.createElement("div");column.className="clip-column";grid.append(column);return column;});
   filtered.forEach((clip,index)=>{
     const button=document.createElement("button");
-    button.type="button";button.className="clip-card";button.setAttribute("aria-label",`查看 ${clip.name} 的素材详情`);
-    button.innerHTML=`<div class="clip-thumb" style="--clip-height:${clip.height}px"><img src="assets/clip-${String(clip.id).padStart(2,"0")}.jpg" alt="${clip.tags.slice(0,2).join("，")}示例画面" width="600" height="400" ${index>3?'loading="lazy"':''}><span class="clip-duration">${clip.duration}</span><span class="clip-hover-play">${icon("arrow-up")}</span></div><div class="clip-info"><span class="clip-name">${clip.name}</span><div class="clip-tags">${clip.tags.slice(0,columns===2?1:2).map(tag=>`<span>${tag}</span>`).join("")}<span class="clip-tag-extra">+${clip.tags.length-(columns===2?1:2)}</span></div></div>`;
+    const name = clipName(clip);
+    const tags = clip.tags.map(tagLabel);
+    const alt = localize(`${tags.slice(0, 2).join("，")}示例画面`, `Sample footage: ${tags.slice(0, 2).join(", ")}`);
+    const shownTags = columns === 2 ? 1 : 2;
+    button.type="button";button.className="clip-card";button.setAttribute("aria-label",localize(`查看 ${name} 的素材详情`, `View details for ${name}`));
+    button.innerHTML=`<div class="clip-thumb" style="--clip-height:${clip.height}px"><img src="${thumbnail(clip.id)}" alt="${alt}" width="600" height="400" ${index>3?'loading="lazy"':''}><span class="clip-duration">${clip.duration}</span><span class="clip-hover-play">${icon("arrow-up")}</span></div><div class="clip-info"><span class="clip-name">${name}</span><div class="clip-tags">${tags.slice(0,shownTags).map(tag=>`<span>${tag}</span>`).join("")}<span class="clip-tag-extra">+${tags.length-shownTags}</span></div></div>`;
     button.addEventListener("click",()=>showClip(clip,button));
     buckets[index%columns].append(button);
   });
   $("#empty-state").hidden=filtered.length>0;
-  $("#result-count").textContent=`${filtered.length} 段素材${activeFilter!=="all"?` · ${activeFilter}`:""}`;
+  $("#result-count").textContent=`${clipCount(filtered.length)}${activeFilter!=="all"?` · ${tagLabel(activeFilter)}`:""}`;
 }
 
 function setFilter(value) {
@@ -63,7 +91,7 @@ function switchView(view) {
   currentView=view;
   for(const name of ["video","tag"]){const active=name===view;const tab=$(`#${name}-tab`);tab.setAttribute("aria-selected",String(active));tab.tabIndex=active?0:-1;$(`#${name}-panel`).hidden=!active;}
   updateSearchPlaceholder();
-  searchInput.setAttribute("aria-label",view==="tag"?"搜索演示标签":"搜索演示视频");
+  searchInput.setAttribute("aria-label", view === "tag" ? localize("搜索演示标签", "Search demo tags") : localize("搜索演示视频", "Search demo videos"));
   $(".filter-list").hidden=view==="tag";
   $("#tag-view-heading").hidden=view!=="tag";
   if(view==="tag")renderMosaic();else renderClips();
@@ -80,68 +108,49 @@ function renderMosaic() {
   const counts=new Map();
   clips.forEach(clip=>clip.tags.forEach(tag=>counts.set(tag,(counts.get(tag)||0)+1)));
   const query=searchInput.value.trim().toLocaleLowerCase();
-  const entries=[...counts].map(([tag,n])=>({tag,n})).sort((a,b)=>b.n-a.n).filter(({tag})=>tag.toLocaleLowerCase().includes(query));
+  const entries=[...counts].map(([tag,n])=>({tag,n})).sort((a,b)=>b.n-a.n).filter(({tag})=>tagLabel(tag).toLocaleLowerCase().includes(query));
   mosaic.replaceChildren();
-  if(!entries.length){mosaic.style.height="320px";const message=document.createElement("p");message.className="empty-state";message.textContent="还没有匹配的标签，试试“山川”或“旅行”。";mosaic.append(message);$("#result-count").textContent="0 个匹配标签";return;}
+  if (!entries.length) {
+    mosaic.style.height = "320px";
+    const message = document.createElement("p");
+    message.className = "empty-state";
+    message.textContent = localize("还没有匹配的标签，试试“山川”或“旅行”。", "No tags match. Try “mountains” or “travel”.");
+    mosaic.append(message);
+    $("#result-count").textContent = localize("0 个匹配标签", "0 matching tags");
+    return;
+  }
   const width=mosaic.clientWidth;
   if(!width)return;
-  const layout=layoutShowcaseTags(width,entries);
+  const layout=layoutShowcaseTags(width,entries.length);
   mosaic.style.height=`${layout.height}px`;
   layout.tiles.forEach((tile,index)=>{
     const entry=entries[index],visual=tagVisuals[entry.tag]||{tone:"ink",symbol:"tag-icon"};
+    const title = tagLabel(entry.tag);
+    const countLabel = clipCount(entry.n);
     const button=document.createElement("button");
     button.type="button";button.className=`mosaic-tile tag-piece ${visual.image?"has-photo":`tile-${visual.tone}`}`;
     button.style.cssText=`left:${tile.left}px;top:${tile.top}px;width:${tile.width}px;height:${tile.height}px;clip-path:path('${tile.path}');`;
-    button.setAttribute("aria-label",`查看标签 ${entry.tag}，${entry.n} 段素材`);
+    button.setAttribute("aria-label",localize(`查看标签 ${title}，${countLabel}`, `View ${countLabel} tagged ${title}`));
     if(visual.image){
       const img=document.createElement("img");
-      img.src=`assets/clip-${String(visual.image).padStart(2,"0")}.jpg`;img.alt="";
+      img.src=thumbnail(visual.image);img.alt="";
       img.width=600;img.height=400;img.decoding="async";if(index>7)img.loading="lazy";
       button.append(img);
     }
     const label=document.createElement("span");label.className="mosaic-label";
-    const showSymbol=visual.symbol&&tile.label.band>=36;
-    const nameSize=Math.max(13,Math.min(24,Math.floor(tile.label.width/Array.from(entry.tag).length),Math.floor((tile.label.band*2-(showSymbol?53:26))/1.35)));
-    label.style.cssText=`left:${tile.label.x}px;top:${tile.label.y}px;width:${tile.label.width}px;font-size:${nameSize}px;`;
+    const { x, y, width, band, nameSize } = tile.label;
+    const titleWidth = title.length * (english ? .62 : 1);
+    const fontSize = Math.max(12, Math.min(nameSize, Math.floor(width / titleWidth)));
+    const showSymbol = visual.symbol && band >= 34;
+    label.style.cssText=`left:${x}px;top:${y}px;width:${width}px;font-size:${fontSize}px;`;
     if(showSymbol)label.innerHTML=`<span class="tile-symbol">${icon(visual.symbol)}</span>`;
-    const name=document.createElement("strong");name.textContent=entry.tag;
-    const count=document.createElement("small");count.textContent=`${entry.n} 段素材`;
+    const name=document.createElement("strong");name.textContent=title;
+    const count=document.createElement("small");count.textContent=countLabel;
     label.append(name,count);button.append(label);
     button.addEventListener("click",()=>{searchInput.value="";setFilter(entry.tag);switchView("video");searchInput.focus({preventScroll:true});});
     mosaic.append(button);
   });
-  $("#result-count").textContent=`${entries.length} 个标签 · 示例素材库`;
-}
-
-function layoutShowcaseTags(width,entries) {
-  const small=window.matchMedia("(max-width:600px)").matches;
-  const heroSites=small
-    ? [[.22,.08],[.73,.12],[.25,.34],[.83,.35],[.13,.61],[.62,.58],[.30,.87],[.85,.85]]
-    : [[.12,.15],[.40,.16],[.68,.11],[.90,.27],[.09,.72],[.35,.73],[.61,.65],[.88,.83]];
-  const patterns={
-    1:[[.5,.5]],
-    2:small?[[.5,.24],[.5,.76]]:[[.25,.5],[.75,.5]],
-    3:[[.2,.24],[.77,.24],[.5,.78]],
-    4:[[.18,.2],[.74,.25],[.23,.75],[.81,.75]],
-    5:small?[[.25,.12],[.81,.18],[.18,.56],[.65,.48],[.62,.86]]:[[.13,.25],[.50,.16],[.86,.30],[.28,.77],[.73,.78]],
-    6:small?[[.22,.10],[.77,.15],[.30,.44],[.82,.51],[.19,.83],[.74,.86]]:[[.12,.15],[.43,.20],[.83,.16],[.09,.72],[.39,.73],[.77,.72]]
-  };
-  const tiles=[];let start=0,offset=0;
-  while(start<entries.length){
-    const remaining=entries.length-start;
-    const count=remaining>8&&remaining<12?Math.ceil(remaining/2):Math.min(8,remaining);
-    const height=small?(count===1?220:count===2?360:count===3?440:count===4?500:590):(count===1?250:count===2?300:count===3?340:count===4?380:420);
-    const positions=patterns[count]||heroSites.slice(0,count);
-    const sites=positions.map(([x,y],index)=>({x:x*width,y:y*height,weight:index===0?width*height*.009:0}));
-    const frame=[{x:0,y:0},{x:width,y:0},{x:width,y:height},{x:0,y:height}];
-    sites.forEach((site,index)=>{
-      let polygon=frame;
-      for(const neighbor of sites)if(neighbor!==site)polygon=clipMosaicCell(polygon,site,neighbor);
-      const tile=mosaicTile(polygon,index);tile.top+=offset;tiles.push(tile);
-    });
-    start+=count;offset+=height+(start<entries.length?14:0);
-  }
-  return {height:offset,tiles};
+  $("#result-count").textContent=localize(`${entries.length} 个标签 · 示例素材库`, `${entries.length} ${entries.length === 1 ? "tag" : "tags"} · Demo library`);
 }
 
 function showDialog(dialog,trigger) {
@@ -150,13 +159,13 @@ function showDialog(dialog,trigger) {
 }
 
 function showClip(clip,trigger) {
-  $("#detail-image").src=`assets/clip-${String(clip.id).padStart(2,"0")}.jpg`;
-  $("#detail-image").alt=clip.tags.join("，");
-  $("#clip-title").textContent=clip.name;
+  $("#detail-image").src=thumbnail(clip.id);
+  $("#detail-image").alt=clip.tags.map(tagLabel).join(localize("，", ", "));
+  $("#clip-title").textContent=clipName(clip);
   $("#detail-meta").textContent=`${clip.size}  /  ${clip.duration}  /  ${clip.name.split(".").pop().toUpperCase()}`;
-  $("#detail-summary").textContent=clip.summary;
+  $("#detail-summary").textContent=clipSummary(clip);
   $("#detail-tags").replaceChildren();
-  clip.tags.forEach(tag=>{const button=document.createElement("button");button.type="button";button.textContent=tag;button.addEventListener("click",()=>{dialogFocusTargets.set($("#clip-dialog"),searchInput);$("#clip-dialog").close();searchInput.value="";setFilter(tag);switchView("video");scrollToDemo();});$("#detail-tags").append(button);});
+  clip.tags.forEach(tag=>{const button=document.createElement("button");button.type="button";button.textContent=tagLabel(tag);button.addEventListener("click",()=>{dialogFocusTargets.set($("#clip-dialog"),searchInput);$("#clip-dialog").close();searchInput.value="";setFilter(tag);switchView("video");scrollToDemo();});$("#detail-tags").append(button);});
   showDialog($("#clip-dialog"),trigger);
 }
 
@@ -168,9 +177,21 @@ document.addEventListener("keydown",event=>{if(event.key==="/"&&!document.queryS
 document.querySelectorAll("[data-open]").forEach(button=>button.addEventListener("click",()=>showDialog($(`#${button.dataset.open}-dialog`),button)));
 document.querySelectorAll("dialog").forEach(dialog=>{dialog.querySelector(".dialog-close").addEventListener("click",()=>dialog.close());dialog.addEventListener("click",event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}});dialog.addEventListener("close",()=>{const target=dialogFocusTargets.get(dialog)||lastDialogTrigger;dialogFocusTargets.delete(dialog);if(target?.isConnected)target.focus({preventScroll:true});});});
 const menuButton=$(".menu-toggle");
-menuButton.addEventListener("click",()=>{const expanded=menuButton.getAttribute("aria-expanded")!=="true";menuButton.setAttribute("aria-expanded",String(expanded));menuButton.setAttribute("aria-label",expanded?"收起导航":"展开导航");$("#mobile-nav").hidden=!expanded;});
-$("#mobile-nav").addEventListener("click",event=>{if(event.target.closest("a,button")){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;}});
-document.addEventListener("keydown",event=>{if(event.key==="Escape"&&menuButton.getAttribute("aria-expanded")==="true"){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","展开导航");$("#mobile-nav").hidden=true;menuButton.focus();}});
+function setMobileMenu(expanded) {
+  menuButton.setAttribute("aria-expanded", String(expanded));
+  menuButton.setAttribute("aria-label", expanded ? localize("收起导航", "Close navigation") : localize("展开导航", "Open navigation"));
+  $("#mobile-nav").hidden = !expanded;
+}
+menuButton.addEventListener("click", () => setMobileMenu(menuButton.getAttribute("aria-expanded") !== "true"));
+$("#mobile-nav").addEventListener("click", event => {
+  if (event.target.closest("a,button")) setMobileMenu(false);
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && menuButton.getAttribute("aria-expanded") === "true") {
+    setMobileMenu(false);
+    menuButton.focus();
+  }
+});
 function setupStickyHeader() {
   const shell=$(".header-shell");
   let frame;
@@ -179,9 +200,7 @@ function setupStickyHeader() {
   window.addEventListener("pageshow",update);
   document.addEventListener("pointerdown",event=>{
     if(menuButton.getAttribute("aria-expanded")==="true"&&!shell.contains(event.target)){
-      menuButton.setAttribute("aria-expanded","false");
-      menuButton.setAttribute("aria-label","展开导航");
-      $("#mobile-nav").hidden=true;
+      setMobileMenu(false);
     }
   });
   update();
@@ -357,7 +376,10 @@ document.querySelectorAll(".closing-tile").forEach(element=>shapeObserver.observ
 renderPageShapes();
 
 function updateSearchPlaceholder() {
-  searchInput.placeholder=currentView==="tag"?"搜索标签":window.matchMedia("(max-width:600px)").matches?"搜索素材":"搜索视频、标签或画面描述";
+  const compact = window.matchMedia("(max-width:600px)").matches;
+  searchInput.placeholder = currentView === "tag" ? localize("搜索标签", "Search tags")
+    : compact ? localize("搜索素材", "Search clips")
+    : localize("搜索视频、标签或画面描述", "Search videos, tags, or scenes");
 }
 
 // SVG coordinates shrink with the diagrams, so retain a readable physical size.
@@ -376,7 +398,7 @@ document.querySelectorAll(".process-illustration").forEach(element=>shapeObserve
 updateSearchPlaceholder();
 
 function setupPageMotion() {
-  const targets=[...document.querySelectorAll(".hero h1,.hero-description,.hero-actions,.platform-note,.hero-art,.section-heading,.app-window,.feature-board,.steps article,.faq-intro,.faq-list details,.closing,.site-footer")];
+  const targets=[...document.querySelectorAll(".hero h1,.hero-description,.hero-actions,.section-heading,.app-window,.product-film,.feature-board,.steps article,.faq-intro,.faq-list details,.closing,.site-footer")];
   targets.forEach(element=>{
     element.dataset.reveal="";
     const siblings=[...element.parentElement.children].filter(sibling=>sibling.matches(".steps article,.faq-list details"));
@@ -424,8 +446,8 @@ function setupPageMotion() {
 }
 setupPageMotion();
 
-function setupHeroVideo() {
-  const video=$("#hero-video");
+function setupProductVideo() {
+  const video=$("#product-video");
   video.muted=true;
   let visible=false,pausedByUser=false;
   video.addEventListener("pause",()=>{if(visible)pausedByUser=true;});
@@ -439,4 +461,4 @@ function setupHeroVideo() {
     observer.observe(video);
   }else video.play().catch(()=>{});
 }
-setupHeroVideo();
+setupProductVideo();

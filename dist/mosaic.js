@@ -71,17 +71,31 @@ function mosaicSpan(polygon, y) {
   return [Math.min(...intersections), Math.max(...intersections)];
 }
 
+function mosaicCenter(polygon) {
+  let area = 0;
+  let x = 0;
+  let y = 0;
+  for (const [index, point] of polygon.entries()) {
+    const next = polygon[(index + 1) % polygon.length];
+    const cross = point.x * next.y - next.x * point.y;
+    area += cross;
+    x += (point.x + next.x) * cross;
+    y += (point.y + next.y) * cross;
+  }
+  return { x: x / (3 * area), y: y / (3 * area) };
+}
+
 function mosaicTile(polygon, index) {
   const left = Math.floor(Math.min(...polygon.map(point => point.x)));
   const top = Math.floor(Math.min(...polygon.map(point => point.y)));
   const width = Math.ceil(Math.max(...polygon.map(point => point.x))) - left;
   const height = Math.ceil(Math.max(...polygon.map(point => point.y))) - top;
-  const centerY = top + height / 2;
+  const center = mosaicCenter(polygon);
   let label;
   // Fit a label band between both edges, preferring room close to the center.
   let band = Math.min(42, height * .34);
   for (const limit of [42, 32, 22, 18]) {
-    const halfHeight = Math.min(limit, height * .34);
+    const halfHeight = Math.min(limit, height * .38);
     let candidate;
     let best = -Infinity;
     for (let y = top + halfHeight + 4; y < top + height - halfHeight - 4; y += 4) {
@@ -90,17 +104,18 @@ function mosaicTile(polygon, index) {
       const pad = limit <= 22 ? 7 : 10;
       const start = Math.max(upper[0], lower[0]) + pad;
       const end = Math.min(upper[1], lower[1]) - pad;
-      const score = end - start - Math.abs(y - centerY) * (limit <= 22 ? .25 : .7);
+      const x = (start + end) / 2;
+      const score = end - start - 1.7 * Math.abs(y - center.y) - .65 * Math.abs(x - center.x);
       if (end > start && score > best) {
         best = score;
-        candidate = { x: (start + end) / 2 - left, y: y - top, width: end - start };
+        candidate = { x: x - left, y: y - top, width: end - start };
       }
     }
     if (candidate && (!label || candidate.width > label.width)) {
       label = candidate;
       band = halfHeight;
     }
-    if (label?.width >= 62) break;
+    if (label?.width >= 86) break;
   }
   label ||= { x: width / 2, y: height / 2, width: width * .65 };
   const radius = Math.min(index === 0 ? 56 : 32, width * 0.24, height * 0.24);
@@ -111,6 +126,47 @@ function mosaicTile(polygon, index) {
   label.lines = Math.max(1, Math.min(4, Math.floor((2 * band - label.countSize * 1.2 - 4) / (label.nameSize * 1.2))));
   label.band = band;
   return { left, top, width, height, label, path: mosaicPath(polygon, radius, left, top) };
+}
+
+const showcaseSites = [
+  [],
+  [[.5, .5]],
+  [[.22, .35], [.77, .65]],
+  [[.22, .21], [.79, .28], [.46, .78]],
+  [[.24, .22], [.78, .30], [.17, .75], [.66, .80]],
+  [[.14, .19], [.47, .19], [.83, .23], [.24, .85], [.76, .84]],
+  [[.13, .24], [.46, .15], [.80, .25], [.18, .74], [.50, .73], [.85, .80]],
+];
+
+function layoutShowcaseTags(width, total) {
+  const narrow = width < 540;
+  const bands = Math.ceil(total / (narrow ? 4 : 6));
+  // Keep the diagonal edges shallow enough to leave a broad center in wide tiles.
+  const horizontalScale = narrow ? .9 : .72;
+  const layoutWidth = width * horizontalScale;
+  const tiles = [];
+  let offset = 0;
+  for (let band = 0; band < bands; band++) {
+    // Balance the bands so the last few tags share the space with their neighbors.
+    const count = Math.ceil((total - tiles.length) / (bands - band));
+    const height = Math.round(narrow
+      ? Math.max(count <= 2 ? 76 : 136, Math.min(310, width * (count <= 2 ? .37 : .58)))
+      : Math.max(178, Math.min(340, width * (count <= 2 ? .19 : .29))));
+    const sites = showcaseSites[count].map(([x, y], index) => ({
+      x: (band % 2 ? 1 - x : x) * layoutWidth,
+      y: y * height,
+      weight: index === 0 ? layoutWidth * height * .006 : 0,
+    }));
+    const frame = [{ x: 0, y: 0 }, { x: layoutWidth, y: 0 }, { x: layoutWidth, y: height }, { x: 0, y: height }];
+    const bandTiles = sites.map((site, index) => {
+      const polygon = sites.reduce((cell, neighbor) => neighbor === site ? cell : clipMosaicCell(cell, site, neighbor), frame);
+      const tile = mosaicTile(polygon.map(({ x, y }) => ({ x: x / horizontalScale, y })), index);
+      return { ...tile, top: tile.top + offset };
+    });
+    tiles.push(...bandTiles);
+    offset += height + (band < bands - 1 ? 7 : 0);
+  }
+  return { height: offset, tiles };
 }
 
 function tagMosaicWeight({ tag, n }, maxLog) {

@@ -9,7 +9,9 @@ const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8',
 const server=http.createServer(async(req,res)=>{
   try{
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    const target=path.resolve(root,`.${pathname==='/'?'/index.html':pathname}`);
+    if(pathname==='/en'){res.writeHead(308,{Location:'/en/'}).end();return;}
+    const filePath=pathname==='/'||pathname==='/en/'?`${pathname}index.html`:pathname;
+    const target=path.resolve(root,`.${filePath}`);
     if(target!==root&&!target.startsWith(root+path.sep)){res.writeHead(403).end();return;}
     const info=await stat(target);
     if(!info.isFile()){res.writeHead(404).end();return;}
